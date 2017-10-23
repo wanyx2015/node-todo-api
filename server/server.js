@@ -140,6 +140,54 @@ app.patch('/todos/:id', (req, res) => {
     res.status(404).send(e);
 })
 
+
+/////////////////////////////////////////// USER PART ////////
+
+
+// GET USERS
+
+app.get('/users', (req, res) => {
+    User.find().then((data) => {
+
+        // for(var i =0; i<data.length; i++){
+        //     console.log(data[i]);
+        //     console.log(data[i]._id.getTimestamp());
+        //     data[i].timeStamp = data[i]._id.getTimestamp();
+        //     console.log(data[i]);
+        // }
+
+        data.forEach((item) => {
+            console.log(item._id.getTimestamp());
+        });
+
+        res.send(data);
+    }).catch((e) => {
+        res.send(e);
+    });
+})
+
+// POST USERS 
+
+app.post('/users', (req, res) => {
+    console.log(req.body);
+    var body = _.pick(req.body, ['email', 'password']);
+    var user = new User(body);
+
+    user.save().then((u) => {
+            return u.generateAuthToken();
+            // res.send(doc);
+        }).then((token) => {
+            res.header('x-auth', token).send(user);
+        })
+        .catch((e) => {
+            res.status(400).send({
+                "status": false,
+                "error": e
+            });
+        })
+})
+
+
 app.listen(port, () => {
     console.log(`Server started on port ${port}`);
 })
