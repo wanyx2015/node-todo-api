@@ -143,9 +143,32 @@ app.patch('/todos/:id', (req, res) => {
 
 /////////////////////////////////////////// USER PART ////////
 
+// middle ware
+
+var authenticate = (req, res, next) => {
+    var token = req.header('x-auth');
+    
+        User.findByToken(token).then((user) => {
+            if (!user) {
+                return Promise.reject("USER NOT FOUND!");            
+            }
+
+            req.user = user;
+            req.token = token;
+
+            next();
+            // res.send(user);
+        }).catch( (e) => {
+            res.status(401).send("Authentication required!");
+        })
+}
+
+// GET /users/me
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
+});
 
 // GET USERS
-
 app.get('/users', (req, res) => {
     User.find().then((data) => {
 
@@ -167,7 +190,6 @@ app.get('/users', (req, res) => {
 })
 
 // POST USERS 
-
 app.post('/users', (req, res) => {
     console.log(req.body);
     var body = _.pick(req.body, ['email', 'password']);
