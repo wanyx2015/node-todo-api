@@ -5,6 +5,7 @@ const ObjectID = require('mongodb').ObjectID;
 const mongoose = require('./db/mongoose').mongoose;
 const Todo = require('./models/todo').Todo;
 const User = require('./models/user').User;
+const authenticate = require('./middleware/authenticate').authenticate;
 
 const port = process.env.PORT || 3000;
 
@@ -142,26 +143,6 @@ app.patch('/todos/:id', (req, res) => {
 
 
 /////////////////////////////////////////// USER PART ////////
-
-// middle ware
-
-var authenticate = (req, res, next) => {
-    var token = req.header('x-auth');
-    
-        User.findByToken(token).then((user) => {
-            if (!user) {
-                return Promise.reject("USER NOT FOUND!");            
-            }
-
-            req.user = user;
-            req.token = token;
-
-            next();
-            // res.send(user);
-        }).catch( (e) => {
-            res.status(401).send("Authentication required!");
-        })
-}
 
 // GET /users/me
 app.get('/users/me', authenticate, (req, res) => {
