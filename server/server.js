@@ -7,6 +7,7 @@ const Todo = require('./models/todo').Todo;
 const User = require('./models/user').User;
 const authenticate = require('./middleware/authenticate').authenticate;
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const port = process.env.PORT || 3000;
 
@@ -191,9 +192,27 @@ app.post('/users', (req, res) => {
         })
 })
 
+// Login
+app.post('/users/login', (req, res) => {
+    var body = _.pick(req.body, ['email', 'password']);
+
+    User.findOne({
+        email: body.email
+    }).then((user) => {
+        console.log(user.password);
+        console.log(body.password);
+        bcrypt.compare(body.password, user.password, (err, data) => {
+            if (data) {
+                console.log("Login succesfully,", user.email);
+                res.send(user);
+            } else {
+                res.send("User not found!");
+            }
+        });
+    });
+})
 
 // Populate db with users and todos
-
 app.post('/populate', (req, res) => {
     const userOneId = new ObjectID();
     const userTwoId = new ObjectID();
