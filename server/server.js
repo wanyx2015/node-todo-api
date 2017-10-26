@@ -6,6 +6,7 @@ const mongoose = require('./db/mongoose').mongoose;
 const Todo = require('./models/todo').Todo;
 const User = require('./models/user').User;
 const authenticate = require('./middleware/authenticate').authenticate;
+const jwt = require('jsonwebtoken');
 
 const port = process.env.PORT || 3000;
 
@@ -190,6 +191,58 @@ app.post('/users', (req, res) => {
         })
 })
 
+
+// Populate db with users and todos
+
+app.post('/populate', (req, res) => {
+    const userOneId = new ObjectID();
+    const userTwoId = new ObjectID();
+
+    const users = [{
+            _id: userOneId,
+            email: 'andrew@example.com',
+            password: 'userOnePass',
+            tokens: [{
+                access: 'auth',
+                token: jwt.sign({
+                    _id: userOneId,
+                    access: 'auth'
+                }, 'abc123').toString()
+            }]
+        },
+        {
+            _id: userTwoId,
+            email: 'jen@example.com',
+            password: 'userTwoPass'
+        }
+    ]
+
+    const todos = [{
+        _id: new ObjectID(),
+        text: 'First todo!'
+    }, {
+        _id: new ObjectID(),
+        text: 'Second todo!',
+        completed: true,
+        completedAt: new Date().getTime()
+    }]
+
+    User.remove({}).then(() => {
+
+        Todo.remove({}).then(() => {
+            var userOne = new User(users[0]).save();
+            var userTwo = new User(users[1]).save();
+            var todoOne = new Todo(todos[0]).save();
+            var todoTwo = new Todo(todos[1]).save();
+
+            Promise.all([userOne, userTwo, todoOne, todoTwo]).then((data) => {
+                res.send(data);
+            });
+        })
+
+
+    })
+});
 
 app.listen(port, () => {
     console.log(`Server started on port ${port}`);
