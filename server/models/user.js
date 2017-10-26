@@ -66,6 +66,28 @@ UserSchema.methods.generateAuthToken = function () {
     })
 }
 
+UserSchema.statics.findByCredentials = function (email, password) {
+    var User = this;
+
+    return User.findOne({
+        email
+    }).then((user) => {
+        if (!user) {
+            return Promise.reject("Authentication failed!");
+        }
+
+        return new Promise((resolve, reject) => {
+            bcrypt.compare(password, user.password, (err, data) => {
+                if (data) {
+                    console.log("Login succesfully,", user.email);
+                    resolve(user);
+                } else {
+                    reject("Authentication failed!");
+                }
+            });
+        });
+    });
+}
 UserSchema.statics.findByToken = function (token) {
     var user = this;
     var decoded;
@@ -119,11 +141,19 @@ UserSchema.pre('save', function (next) {
             console.log();
             // if move next() call outside the bcrypt call, then original user will be saved.
             next();
-            
+
         })
     })
 
 })
+
+// UserSchema.on('index', (err) => {
+//     console.log("In index......");
+//     if (err) {
+//         console.error(err);
+//     }
+// });
+
 var User = mongoose.model('User', UserSchema);
 
 
