@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema({
     email: {
@@ -66,7 +67,7 @@ UserSchema.methods.generateAuthToken = function () {
 }
 
 UserSchema.statics.findByToken = function (token) {
-    // var User = this;
+    var user = this;
     var decoded;
 
     try {
@@ -87,6 +88,42 @@ UserSchema.statics.findByToken = function (token) {
     });
 };
 
+// pre middleware, to hash the password before save the user
+UserSchema.pre('save', function (next) {
+    console.log("in pre save middleware.")
+    var user = this;
+
+    var password = user.password;
+
+    console.log(password);
+
+    console.log("Password is modified?", user.isModified("password"));
+
+
+    // if in find(), isModified is false
+    if (!user.isModified("password")) {
+        next()
+        return;
+    }
+
+    bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.hash(user.password, salt, (err, hash) => {
+            console.log("Hashing password...");
+            if (err) {
+                console.log(err);
+            }
+            console.log(hash);
+            user.password = hash;
+            console.log("Password is modified?", user.isModified("password"));
+            console.log(JSON.stringify(user));
+            console.log();
+            // if move next() call outside the bcrypt call, then original user will be saved.
+            next();
+            
+        })
+    })
+
+})
 var User = mongoose.model('User', UserSchema);
 
 
