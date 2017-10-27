@@ -1,5 +1,6 @@
 
 Steps to deploy to heroku:
+ heroku create
  git push heroku master
  heroku logs
  heroku open
