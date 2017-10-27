@@ -154,13 +154,6 @@ app.get('/users/me', authenticate, (req, res) => {
 app.get('/users', (req, res) => {
     User.find().then((data) => {
 
-        // for(var i =0; i<data.length; i++){
-        //     console.log(data[i]);
-        //     console.log(data[i]._id.getTimestamp());
-        //     data[i].timeStamp = data[i]._id.getTimestamp();
-        //     console.log(data[i]);
-        // }
-
         data.forEach((item) => {
             console.log(item._id.getTimestamp());
         });
@@ -204,6 +197,15 @@ app.post('/users/login', (req, res) => {
         res.status(400).send("Authentication failed!");
     });
 })
+
+// Logout
+app.delete('/users/me/token', authenticate, (req, res) => {
+    req.user.removeToken(req.token).then(() => {
+        res.status(200).send("Logout successfully!");
+    }, () => {
+        res.status(400).send("Unauthorized!");
+    });
+});
 
 // Populate db with users and todos
 app.post('/populate', (req, res) => {
